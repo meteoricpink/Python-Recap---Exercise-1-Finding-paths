@@ -1,0 +1,74 @@
+# Alexandru Timaru: Python Recap - Exercise 1: Finding paths
+
+from collections import deque
+
+def print_labyrinth(lab: list[str], path: list[tuple[int, int]] = None) -> None:
+    def replace_at_index(s: str, r: str, idx: int) -> str:
+        return s[:idx] + r + s[idx + len(r):]
+
+    # Print column numbers
+    print('  ' + ''.join(str(i % 10) for i in range(len(lab[0]))))
+    for row, line in enumerate(lab):
+        row_str = str(row % 10) + ' '
+        if path:
+            for element in path:
+                if element[0] == row:
+                    line = replace_at_index(line, 'X', element[1])
+        row_str += line + ' ' + str(row % 10)
+        print(row_str)
+    # Print column numbers again
+    print('  ' + ''.join(str(i % 10) for i in range(len(lab[0]))))
+
+def prompt_integer(message: str) -> int:
+    while True:
+        value = input(message)
+        if value.isdigit():
+            return int(value)
+        print("Invalid input. Please enter an integer.")
+
+def prompt_user_for_location(name: str) -> tuple[int, int]:
+    row = prompt_integer(f'Row of {name}: ')
+    column = prompt_integer(f'Column of {name}: ')
+    return (row, column)
+
+def is_traversable(lab: list[str], location: tuple[int, int]) -> bool:
+    row, column = location
+    return lab[row][column] == ' '
+
+def bfs(lab: list[str], start: tuple[int, int], end: tuple[int, int]) -> list[tuple[int, int]]:
+    moves = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+    q = deque([start])
+    visited = set()
+    paths = {start: [start]}
+
+    while q:
+        current = q.popleft()
+        if current == end:
+            return paths[current]
+        if current not in visited:
+            visited.add(current)
+            row, column = current
+            for move in moves:
+                next_move = (row + move[0], column + move[1])
+                if (0 <= next_move[0] < len(lab) and 0 <= next_move[1] < len(lab[0]) and
+                        is_traversable(lab, next_move)):
+                    new_path = paths[current] + [next_move]
+                    paths[next_move] = new_path
+                    q.append(next_move)
+    return []
+
+# Example labyrinth
+labyrinth = [
+    "███████",
+    "█     █",
+    "█  ████",
+    "█ ███ █",
+    "█     █",
+    "███████"
+]
+
+print_labyrinth(labyrinth)
+start_location = prompt_user_for_location("start")
+end_location = prompt_user_for_location("end")
+path = bfs(labyrinth, start_location, end_location)
+print_labyrinth(labyrinth, path)
